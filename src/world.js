@@ -33,19 +33,65 @@ function ink(parent, geometry, x = 0, y = 0, z = 0, mat = paper) {
   return mesh;
 }
 
+// A wall clock; call clock.userData.set(minutes) to move the hands.
+function makeClock(parent, x, y, z, r = 0.32) {
+  const clock = new THREE.Group();
+  clock.position.set(x, y, z);
+  parent.add(clock);
+  clock.add(new THREE.Mesh(new THREE.CircleGeometry(r, 40), white));
+  clock.add(new THREE.Mesh(new THREE.TorusGeometry(r, r * 0.09, 8, 40), solid));
+  for (let i = 0; i < 12; i++) {
+    const tick = new THREE.Mesh(BOX(r * 0.06, r * 0.19, 0.01), solid);
+    const a = (i / 12) * Math.PI * 2;
+    tick.position.set(Math.sin(a) * r * 0.81, Math.cos(a) * r * 0.81, 0.01);
+    tick.rotation.z = -a;
+    clock.add(tick);
+  }
+  const hand = (len, w) => {
+    const pivot = new THREE.Group();
+    const m = new THREE.Mesh(BOX(w, len, 0.01), solid);
+    m.position.set(0, len / 2, 0.02);
+    pivot.add(m);
+    clock.add(pivot);
+    return pivot;
+  };
+  const hourHand = hand(r * 0.5, r * 0.11);
+  const minuteHand = hand(r * 0.78, r * 0.06);
+  clock.userData.set = minutes => {
+    hourHand.rotation.z = -((minutes / 60) % 12) / 12 * Math.PI * 2;
+    minuteHand.rotation.z = -((minutes % 60) / 60) * Math.PI * 2;
+  };
+  return clock;
+}
+
+function makeChair(parent, x, z, facing = 1) {
+  const chair = new THREE.Group();
+  chair.position.set(x, 0, z);
+  chair.rotation.y = facing > 0 ? 0 : Math.PI;
+  parent.add(chair);
+  ink(chair, BOX(0.46, 0.06, 0.46), 0, 0.45, 0);
+  ink(chair, BOX(0.06, 0.5, 0.46), -0.25, 0.75, 0);
+  ink(chair, new THREE.CylinderGeometry(0.03, 0.03, 0.38, 8), 0, 0.23, 0);
+  ink(chair, BOX(0.5, 0.04, 0.08), 0, 0.03, 0);
+  ink(chair, BOX(0.08, 0.04, 0.5), 0, 0.03, 0);
+  return chair;
+}
+
 export function buildOffice(scene) {
   const screens = [];
   const leds = [];
   const chairs = [];
 
   // Floor with a faint grid, and the back wall.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 40), paper);
+  // One big floor shared by every set (the office at x≈0, the interview room at x≈40).
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(140, 60), paper);
   floor.rotation.x = -Math.PI / 2;
+  floor.position.x = 20;
   scene.add(floor);
-  const grid = new THREE.GridHelper(60, 60, 0x000000, 0x000000);
+  const grid = new THREE.GridHelper(140, 140, 0x000000, 0x000000);
   grid.material.transparent = true;
   grid.material.opacity = 0.12;
-  grid.position.y = 0.002;
+  grid.position.set(20, 0.002, 0);
   scene.add(grid);
   ink(scene, BOX(26, 7, 0.2), 0, 3.5, -4.1);
 
@@ -76,28 +122,7 @@ export function buildOffice(scene) {
   });
 
   // Wall clock, driven by the in-game day.
-  const clock = piece(new THREE.Group(), 45);
-  clock.position.set(1.6, 2.6, -3.96);
-  scene.add(clock);
-  clock.add(new THREE.Mesh(new THREE.CircleGeometry(0.32, 40), white));
-  clock.add(new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.028, 8, 40), solid));
-  for (let i = 0; i < 12; i++) {
-    const tick = new THREE.Mesh(BOX(0.02, 0.06, 0.01), solid);
-    const a = (i / 12) * Math.PI * 2;
-    tick.position.set(Math.sin(a) * 0.26, Math.cos(a) * 0.26, 0.01);
-    tick.rotation.z = -a;
-    clock.add(tick);
-  }
-  const hand = (len, w) => {
-    const pivot = new THREE.Group();
-    const m = new THREE.Mesh(BOX(w, len, 0.01), solid);
-    m.position.set(0, len / 2, 0.02);
-    pivot.add(m);
-    clock.add(pivot);
-    return pivot;
-  };
-  const hourHand = hand(0.16, 0.035);
-  const minuteHand = hand(0.25, 0.02);
+  const clock = piece(makeClock(scene, 1.6, 2.6, -3.96), 45);
 
   // Desks: top, legs, monitor (screen faces the sitter), keyboard, mug, chair.
   const desks = [];
@@ -127,14 +152,7 @@ export function buildOffice(scene) {
     screens.push(screen);
     parts.push(monitor);
 
-    const chair = piece(new THREE.Group(), 350);
-    chair.position.set(x - 0.95, 0, z);
-    scene.add(chair);
-    ink(chair, BOX(0.46, 0.06, 0.46), 0, 0.45, 0);
-    ink(chair, BOX(0.06, 0.5, 0.46), -0.25, 0.75, 0);
-    ink(chair, new THREE.CylinderGeometry(0.03, 0.03, 0.38, 8), 0, 0.23, 0);
-    ink(chair, BOX(0.5, 0.04, 0.08), 0, 0.03, 0);
-    ink(chair, BOX(0.08, 0.04, 0.5), 0, 0.03, 0);
+    const chair = piece(makeChair(scene, x - 0.95, z), 350);
     chairs.push(chair);
     desks.push(parts.map(o => pieces.find(p => p.obj === o)));
   }
@@ -218,10 +236,7 @@ export function buildOffice(scene) {
       for (const p of pieces) { p.live = false; p.obj.position.copy(p.pos0); p.obj.quaternion.copy(p.q0); }
     },
     alarm(on) { alarm = on; },
-    setClock(minutes) {
-      hourHand.rotation.z = -((minutes / 60) % 12) / 12 * Math.PI * 2;
-      minuteHand.rotation.z = -((minutes % 60) / 60) * Math.PI * 2;
-    },
+    setClock(minutes) { clock.userData.set(minutes); },
     update(dt, t) {
       ledTimer += dt;
       if (ledTimer > (alarm ? 0.05 : 0.18)) {
@@ -250,4 +265,59 @@ export function buildOffice(scene) {
       }
     },
   };
+}
+
+// ---------- Chapter 2 set: a glass meeting room at Glasshouse AI ----------
+export function buildInterviewRoom(scene, ox) {
+  // Back wall with tall windows and a city skyline fading into the fog.
+  ink(scene, BOX(14, 7, 0.2), ox, 3.5, -3.6);
+  for (const dx of [-4.5, -2.7, 2.7, 4.5]) {
+    ink(scene, BOX(1.5, 2.4, 0.06), ox + dx, 2.0, -3.48);
+    ink(scene, BOX(0.05, 2.4, 0.1), ox + dx, 2.0, -3.45);
+  }
+  [[-6, 3], [-4.6, 5], [-3.2, 2.2], [-1.6, 6], [0.4, 3.6], [2.2, 4.8], [3.8, 2.6], [5.6, 5.4]].forEach(([dx, h]) => {
+    ink(scene, BOX(1.2, h, 1.2), ox + dx, h / 2, -16);
+  });
+
+  // Company sign, drawn onto a canvas texture.
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 160;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = '#000'; g.font = '900 96px ui-monospace, Menlo, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('GLASSHOUSE AI', c.width / 2, c.height / 2 + 4);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) }));
+  sign.position.set(ox, 3.05, -3.48);
+  scene.add(sign);
+
+  // Whiteboard for the system-design round.
+  ink(scene, BOX(2.2, 1.1, 0.05), ox + 0.1, 1.85, -3.47);
+
+  // Glass side walls: thin mullions suggest panes.
+  for (const side of [-1, 1]) {
+    for (let z = -3.2; z <= 1.6; z += 1.2) ink(scene, BOX(0.04, 3, 0.04), ox + side * 5.2, 1.5, z);
+    ink(scene, BOX(0.06, 0.06, 4.9), ox + side * 5.2, 3.0, -0.8);
+  }
+
+  // Meeting table with legs, laptop, water glasses.
+  ink(scene, BOX(2.4, 0.06, 1.1), ox, 0.75, 0);
+  for (const [dx, dz] of [[-1.1, -0.45], [1.1, -0.45], [-1.1, 0.45], [1.1, 0.45]]) ink(scene, BOX(0.05, 0.72, 0.05), ox + dx, 0.36, dz);
+  ink(scene, BOX(0.3, 0.02, 0.42), ox - 0.6, 0.79, 0);                // laptop base
+  const lid = ink(scene, BOX(0.02, 0.3, 0.42), ox - 0.46, 0.93, 0);   // laptop screen, tilted back
+  lid.rotation.z = -0.25;
+  for (const [dx, dz] of [[-0.4, 0.38], [0.5, 0.36]]) ink(scene, new THREE.CylinderGeometry(0.04, 0.035, 0.14, 12), ox + dx, 0.85, dz);
+  ink(scene, BOX(0.3, 0.01, 0.4), ox + 0.6, 0.785, 0.05);              // interviewer's notes
+
+  const chairs = { you: makeChair(scene, ox - 1.6, 0, 1), them: makeChair(scene, ox + 1.6, 0, -1) };
+
+  // Plant + clock.
+  ink(scene, new THREE.CylinderGeometry(0.22, 0.17, 0.42, 12), ox - 4.4, 0.21, -2.8);
+  for (let i = 0; i < 5; i++) {
+    const leaf = ink(scene, new THREE.SphereGeometry(0.16, 7, 5), ox - 4.4 + Math.sin(i * 1.3) * 0.18, 0.62 + i * 0.12, -2.8 + Math.cos(i * 1.3) * 0.12);
+    leaf.scale.set(0.7, 1.4, 0.7);
+  }
+  const clock = makeClock(scene, ox + 2.0, 2.75, -3.48, 0.26);
+
+  return { chairs, setClock: m => clock.userData.set(m) };
 }

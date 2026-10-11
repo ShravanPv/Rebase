@@ -30,6 +30,9 @@ export const POSES = {
   cool: { ...stand, lean: -3, tilt: -6, uaL: -35, faL: 35, uaR: 100, faR: 215, thL: -14, shL: -10, thR: 14, shR: 10 },
   slump: { ...stand, lean: 22, tilt: 35, hipY: -0.04, uaL: 5, faL: 5, uaR: 8, faR: 8 },
   facepalm: { ...stand, lean: 8, tilt: 20, uaR: 110, faR: 228 },
+  talkSit: { ...sit, uaR: 55, faR: 110, tilt: -4 },      // gesturing while seated
+  handshake: { ...stand, lean: 6, uaR: 60, faR: 85 },
+  nodSit: { ...sit, tilt: 18, uaL: 40, faL: 95, uaR: 42, faR: 92 },
 };
 
 const INK = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
@@ -53,7 +56,7 @@ function place(mesh, a, b, za = 0, zb = za) {
 }
 
 export class Stickman {
-  constructor(scene, { x = 0, z = 0, facing = 1, pose = 'stand', scarf = false, tie = false } = {}) {
+  constructor(scene, { x = 0, z = 0, facing = 1, pose = 'stand', scarf = false, tie = false, glasses = false } = {}) {
     this.g = new THREE.Group();
     this.g.position.set(x, 0, z);
     scene.add(this.g);
@@ -70,6 +73,15 @@ export class Stickman {
     this.shades.position.set(0.055, 0.02, 0);
     this.shades.visible = false;
     this.head.add(this.shades);
+    if (glasses) { // round specs in profile: a lens ring at the front of the face
+      for (const z of [0.02, -0.02]) { // one on each side of the head disc, so it shows facing either way
+        const lens = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 6, 20), INK);
+        lens.position.set(0.085, 0.015, z);
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.012, 0.012), INK);
+        arm.position.set(0.02, 0.025, z);
+        this.head.add(lens, arm);
+      }
+    }
     this.g.add(this.head);
 
     this.tie = tie ? mesh(new THREE.BoxGeometry(0.08, 0.26, 0.03)) : null;

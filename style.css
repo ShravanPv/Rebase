@@ -234,6 +234,32 @@ body.reduce-motion .bar, body.reduce-motion #caption { transition: none; }
 .brief .rules b { display: block; margin-bottom: 2px; }
 .brief .controls { font-size: 12px; text-align: center; margin-top: 16px; }
 
+/* ---------- slot puzzles (prompt builder, system design) & code quiz ---------- */
+.slot { padding: 10px 12px; border-bottom: 2px dashed var(--ink); }
+.slot-label { font-weight: 800; font-size: 13px; letter-spacing: .1em; margin-bottom: 8px; }
+.slot-label small { display: block; font-weight: 400; letter-spacing: 0; margin-top: 2px; }
+.opts { display: grid; gap: 6px; }
+.opt {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  font: inherit; font-size: 14px; line-height: 1.4; color: var(--ink); background: var(--paper);
+  border: 2px solid var(--ink); padding: 8px 10px;
+}
+.opt:hover { background: #eee; }
+.opt.sel { background: var(--ink); color: var(--paper); }
+.opt .plain { display: none; font-size: 12px; margin-top: 3px; }
+.opt .plain::before { content: "↳ "; }
+#panel.explain .opt .plain { display: block; }
+.opt kbd { margin-right: 8px; }
+.slot.tried, .opt.tried { animation: shake .3s; outline: 3px dotted var(--ink); outline-offset: -3px; }
+body.reduce-motion .slot.tried, body.reduce-motion .opt.tried { animation: none; }
+.btn.submit { font-weight: 800; }
+pre.code {
+  margin: 0; padding: 12px 14px; border-bottom: 3px solid var(--ink);
+  font-family: inherit; font-size: 14px; line-height: 1.55; overflow-x: auto; background: #f4f4f4;
+}
+.quiz-opts { display: grid; gap: 6px; padding: 10px 12px; }
+.chapters p { font-size: 15px; }
+
 .gitlog { text-align: left; }
 .gitlog h2 { text-align: center; }
 .gitlog .entry { border-bottom: 1px dashed var(--ink); padding: 8px 0; }

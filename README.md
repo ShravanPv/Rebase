@@ -14,7 +14,7 @@
   <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.186.1-000000?logo=threedotjs&logoColor=white">
   <img alt="Vanilla JS" src="https://img.shields.io/badge/JavaScript-vanilla-000000?logo=javascript&logoColor=white">
   <img alt="No build step" src="https://img.shields.io/badge/build-none-000000">
-  <img alt="Status" src="https://img.shields.io/badge/status-Chapter%201%20playable-000000">
+  <img alt="Status" src="https://img.shields.io/badge/status-Chapters%201--2%20playable-000000">
 </p>
 
 ---
@@ -27,7 +27,7 @@ It's Monday, 09:00. At 09:40 checkout goes down, customers can't pay, and your m
 
 Fail the day and ECHO rewinds time to 09:00: a **REBASE**. You keep everything you learned. The day remembers too.
 
-> The full arc follows Stix from junior engineer to founder across six chapters. Chapter 1, *The Layoff*, is playable now.
+> The full arc goes from junior engineer to founder across six chapters. Chapters 1 (*The Layoff*) and 2 (*The Interview*) are playable now. Clear Chapter 1 to unlock Chapter 2.
 
 ## Screenshots
 
@@ -77,21 +77,37 @@ Available from the title screen and the pause menu, and saved in your browser:
 | Flip the desk. I'm DONE. | Rage mode: 12 seconds of smashing, then HR |
 | *(after a clue)* I already know the cause | The speedrun route |
 
-**Fail endings:** Coffee Break · Blind Merge · Rage Quit · 17:00. Find them all in `$ git log` on the title screen.
+**Fail endings:** Coffee Break · Blind Merge · Rage Quit · 17:00.
+
+### Chapter 2: The Interview
+
+You got laid off anyway. Now you're interviewing at **Glasshouse AI**, where candidates may use AI out loud, and are judged on *how*. Interviewer: Morgan.
+
+| Round | Puzzle | What you learn |
+|---|---|---|
+| 1. Prompt | Build a prompt from goal, context, rules and example. Vague lines make ECHO write the wrong thing | How to talk to an AI |
+| 2. Code | Explain ECHO's code to Morgan, line by line | What a function does; you own code you ship |
+| Break | Morgan steps out: practise, peek at the notes (a clue), or slip in an earbud | Honesty about your tools |
+| 3. Design | Plan a signup system for 1,000,000 users. Launch-day test shows where it melts | Load balancers, caches, queues |
+| Final | "Why should we hire you?" | Specifics beat buzzwords |
+
+**Fail endings:** Copy-Paste Candidate · Secret Earpiece · Buzzword Bingo · 11:00.
+
+Find every fail ending in `$ git log` on the title screen.
 
 ### Scoring
 
 Your rank comes from **time + 30 s per loop reset + 20 s per hint**:
 
-| Rank | Score |
-|---|---|
-| **S** | ≤ 90 s |
-| **A** | ≤ 150 s |
-| **B** | ≤ 240 s |
-| **C** | ≤ 360 s |
-| **D** | above that |
+| Rank | Chapter 1 | Chapter 2 |
+|---|---|---|
+| **S** | ≤ 90 s | ≤ 150 s |
+| **A** | ≤ 150 s | ≤ 240 s |
+| **B** | ≤ 240 s | ≤ 360 s |
+| **C** | ≤ 360 s | ≤ 540 s |
+| **D** | above that | above that |
 
-Your best run is saved in the browser. **Copy result to share** gives you a Wordle-style summary to paste to friends.
+Your best run per chapter is saved in the browser. **Copy result to share** gives you a Wordle-style summary to paste to friends.
 
 ## Run it locally
 
@@ -121,7 +137,8 @@ Then open **http://localhost:8770** in Chrome, Edge, Firefox or Safari. Three.js
 - **Game loop** (`main.js`): every frame it updates tweens, timers, stickmen and the world, then renders. Slow-mo is a `timeScale` multiplier on game time.
 - **Stickman** (`stickman.js`): a pose is 11 numbers (joint angles, lean, hip height). Forward kinematics turns them into joint positions, and each bone is a black cylinder. Poses blend with easing, with breathing, typing and walk cycles layered on top.
 - **Camera director** (`anim.js`): named shots (`wide`, `stix`, `monitor`, `boss`) that the camera glides between, plus screen shake.
-- **Story as a script** (`story.js`): the chapter reads like a screenplay of `await` steps. A failure `throw`s, the runner catches it, plays the fail ending and REBASE, and replays the day with memory intact.
+- **Story engine** (`story.js`): title, chapter select, the time loop, three reusable puzzle types (click-the-line, pick-per-slot, code quiz) and scoring. A failure `throw`s, the runner catches it, plays the fail ending and REBASE, and replays the day with memory intact.
+- **Chapters as scripts** (`ch1.js`, `ch2.js`): each chapter is one file that reads like a screenplay of `await` steps, plus its own Dev Dex terms, fail endings, clock and ranks.
 - **Rage physics** (`world.js`): smashable props get velocity, spin, gravity and floor bounces. REBASE tweens every piece back to its saved home.
 
 ## Project structure
@@ -133,10 +150,12 @@ rebase/
 ├── src/
 │   ├── main.js       renderer, scene, cast, game loop, saves
 │   ├── anim.js       easing, tweens, camera director
-│   ├── world.js      ink-outlined office, smashable props, physics
+│   ├── world.js      ink-outlined office + interview room, smashable props, physics
 │   ├── stickman.js   rig, poses, walk cycle, scarf
 │   ├── ui.js         dialogue, choices, panels, QTE, HUD, sound
-│   └── story.js      Chapter 1, loop logic, Dev Dex, endings, scoring
+│   ├── story.js      engine: title, chapter select, loop, puzzles, scoring
+│   ├── ch1.js        Chapter 1 — The Layoff
+│   └── ch2.js        Chapter 2 — The Interview
 ├── vendor/three/     Three.js 0.186.1 (MIT), bundled for offline play
 ├── docs/             screenshots
 ├── CREDITS.md
@@ -146,13 +165,13 @@ rebase/
 ## Roadmap
 
 - [x] **Chapter 1: The Layoff.** Production outage, log and AI-review puzzles, deploy, rage mode
-- [ ] **Chapter 2: The Interview.** Prompt-builder and system-design puzzles
+- [x] **Chapter 2: The Interview.** Prompt builder, explain-the-code, system design, the earbud temptation
 - [ ] **Chapter 3: The Side Project.** AI credit budget, user interviews
 - [ ] **Chapter 4: Demo Day.** Investor profiling, live-demo crash
 - [ ] **Chapter 5: The 3 AM Outage.** Incident triage, the ethical shortcut
 - [ ] **Chapter 6: The Offer.** ECHO's secret, four endings
 - [ ] Daily Loop: one date-seeded puzzle a day, the same for everyone
-- [ ] Story mode: relaxed timing for players who are here for the plot
+- [x] Story mode: relaxed timing for players who are here for the plot
 
 ## Credits & license
 

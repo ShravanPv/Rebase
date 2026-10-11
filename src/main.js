@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { updateTweens, makeDirector } from './anim.js';
-import { buildOffice, inkLine } from './world.js';
+import { buildOffice, buildInterviewRoom, inkLine } from './world.js';
 import { Stickman } from './stickman.js';
 import { play } from './story.js';
 import * as ui from './ui.js';
@@ -42,26 +42,36 @@ resize();
 
 // ---------- the set and the cast ----------
 const world = buildOffice(scene);
+const ROOM_X = 40; // Chapter 2's meeting room sits far enough away that fog hides the office
+const room = buildInterviewRoom(scene, ROOM_X);
 const cast = {
   stix: new Stickman(scene, { x: -0.95, z: 0, pose: 'sit', scarf: true }),
   boss: new Stickman(scene, { x: -7.5, z: 0.55, pose: 'stand', tie: true }),
+  morgan: new Stickman(scene, { x: ROOM_X + 1.6, z: 0, facing: -1, pose: 'sit', glasses: true }),
   co: [
     new Stickman(scene, { x: -4.35, z: -1.6, pose: 'sit' }),
     new Stickman(scene, { x: 2.25, z: -1.6, pose: 'sit' }),
     new Stickman(scene, { x: -0.55, z: -2.9, pose: 'sit' }),
   ],
 };
-const everyone = [cast.stix, cast.boss, ...cast.co];
+const everyone = [cast.stix, cast.boss, cast.morgan, ...cast.co];
 
 // ---------- saved progress (Dev Dex, endings, best) ----------
 const SAVE_KEY = 'rebase.save.v1';
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem(SAVE_KEY)) ?? {}; } catch { /* first run or storage blocked */ }
-const mem = { dex: saved.dex ?? [], endings: saved.endings ?? [], best: saved.best ?? null, briefed: saved.briefed ?? false };
+const mem = {
+  dex: saved.dex ?? [],
+  endings: saved.endings ?? [],
+  // best rank per chapter (older saves stored a single Chapter 1 best)
+  best: saved.best?.score !== undefined ? { ch1: saved.best } : saved.best ?? {},
+  cleared: saved.cleared ?? (saved.best ? ['ch1'] : []),
+  briefed: saved.briefed ?? false,
+};
 const save = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(mem)); } catch { /* ignore */ } };
 
 // Everything the story needs, in one object.
-const g = { camera, cam: makeDirector(camera), cast, world, mem, save, hooks: [], timeScale: 1 };
+const g = { camera, cam: makeDirector(camera), cast, world, room, ROOM_X, mem, save, hooks: [], timeScale: 1 };
 const shake = g.cam.shake;
 g.cam.shake = amount => { if (!ui.settings.reduceMotion) shake(amount); };
 

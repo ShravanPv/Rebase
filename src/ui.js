@@ -250,8 +250,8 @@ export const fmtRun = s => {
 };
 export const fmtClock = min => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(Math.floor(min % 60)).padStart(2, '0')}`;
 export const hudShow = on => { $('hud').hidden = !on; };
-export function hud(day, run) {
-  $('hud-day').textContent = `MON ${fmtClock(day.min)}`;
+export function hud(day, run, label = 'MON') {
+  $('hud-day').textContent = `${label} ${fmtClock(day.min)}`;
   $('hud-loop').textContent = `LOOP ${run.loop + 1}`;
   const r = $('hud-run');
   r.textContent = `⏱ ${fmtRun(run.time)}`;
