@@ -5,6 +5,6 @@
 
 | Asset | Source | License |
 |---|---|---|
-| Three.js 0.186.1 (+ `examples/jsm/lines` add-on) | https://threejs.org via jsDelivr CDN | MIT |
+| Three.js 0.186.1 (+ `examples/jsm/lines` add-on) | https://threejs.org, bundled in `vendor/three/` (license: `vendor/three/LICENSE`) | MIT |
 
 All art, animation, sound (synthesized in code), story and code are original.

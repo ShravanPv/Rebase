@@ -21,7 +21,7 @@
 
 ## The story
 
-You are **Stix**, a junior software engineer in 2026, the year AI writes half the code.
+You are a junior software engineer in 2026, the year AI writes half the code. Enter your own name when you start, or play as **Stix**.
 
 It's Monday, 09:00. At 09:40 checkout goes down, customers can't pay, and your manager wants it fixed before the 17:00 "restructuring" meeting. Your AI pair-programmer **ECHO** is eager to help. Mostly helpful. Occasionally makes things up.
 
@@ -46,7 +46,19 @@ Fail the day and ECHO rewinds time to 09:00: a **REBASE**. You keep everything y
 | `1`–`5` or click | Pick a choice |
 | `Space` or tap | Time the deploy (hit the needle inside the box) |
 | Click objects / mash `Space` | Smash things in rage mode |
+| `S` or **SKIP ▸▸** | Fast-forward a cutscene (great on retries) |
+| `Esc` or **II PAUSE** | Pause: resume, settings, quit to title. The clock stops |
 | `M` | Sound on/off |
+
+### Settings
+
+Available from the title screen and the pause menu, and saved in your browser:
+
+- **Story mode.** No visible timer, no 17:00 fail, an easier deploy. Runs aren't ranked.
+- **Reduce motion & flashes.** Turns off screen shake, white flashes and color inversion.
+- **Text speed.** Normal, fast or instant.
+- **Sound.** On or off.
+- **Name.** What everyone in the office calls you.
 
 ### Rules of the loop
 
@@ -89,7 +101,7 @@ No build step and nothing to install. Serve the folder with any static server:
 python3 -m http.server 8770
 ```
 
-Then open **http://localhost:8770** in Chrome, Edge, Firefox or Safari. An internet connection is needed for the Three.js CDN.
+Then open **http://localhost:8770** in Chrome, Edge, Firefox or Safari. Three.js is bundled in `vendor/`, so it works offline.
 
 > Opening `index.html` straight from disk (`file://`) won't work. Browsers block ES modules from local files, so use a server.
 
@@ -97,7 +109,7 @@ Then open **http://localhost:8770** in Chrome, Edge, Firefox or Safari. An inter
 
 | Layer | Tool | Role |
 |---|---|---|
-| Rendering | [Three.js](https://threejs.org) 0.186.1 (via import map from jsDelivr) | 2.5D world, cinematic camera, toon shading |
+| Rendering | [Three.js](https://threejs.org) 0.186.1 (bundled in `vendor/`, loaded by an import map) | 2.5D world, cinematic camera, toon shading |
 | Ink outlines | `LineSegments2` + `EdgesGeometry` (Three.js add-on) | Thick black edges on every prop |
 | Logic | Vanilla JavaScript, ES modules | Game loop, story, physics |
 | UI | HTML + CSS overlay | Dialogue, choices, puzzles, HUD, cards |
@@ -125,6 +137,7 @@ rebase/
 │   ├── stickman.js   rig, poses, walk cycle, scarf
 │   ├── ui.js         dialogue, choices, panels, QTE, HUD, sound
 │   └── story.js      Chapter 1, loop logic, Dev Dex, endings, scoring
+├── vendor/three/     Three.js 0.186.1 (MIT), bundled for offline play
 ├── docs/             screenshots
 ├── CREDITS.md
 └── LICENSE

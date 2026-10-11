@@ -138,6 +138,40 @@ kbd { border: 2px solid currentColor; padding: 0 6px; margin-right: 10px; font-s
 #qte.ok { background: var(--ink); color: var(--paper); }
 #qte.miss { animation: shake .3s; }
 
+/* ---------- skip button ---------- */
+#skip {
+  position: absolute; top: 56px; right: 16px; z-index: 9; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 800; letter-spacing: .1em;
+  background: var(--paper); color: var(--ink); border: 2px solid var(--ink); padding: 6px 10px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+#skip:hover, #skip:focus-visible { background: var(--ink); color: var(--paper); }
+
+/* ---------- pause & settings overlay ---------- */
+#overlay {
+  position: absolute; inset: 0; z-index: 40; overflow: auto;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(255, 255, 255, .9);
+}
+#overlay h2 { font-size: clamp(30px, 6vw, 52px); letter-spacing: .2em; margin: 0 0 6px; }
+#overlay .hint { font-size: 13px; margin: 0; }
+.settings { display: grid; gap: 10px; }
+.namecard .kicker { font-size: 13px; letter-spacing: .3em; }
+.namecard input {
+  width: min(360px, 100%); margin-top: 14px; padding: 12px 14px;
+  font: inherit; font-size: 22px; text-align: center; color: var(--ink); background: var(--paper);
+  border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); outline: none;
+  -webkit-user-select: text; user-select: text;
+}
+.namecard input:focus { box-shadow: 6px 6px 0 var(--ink); }
+.namecard .hint { margin-top: 20px; }
+.settings > .btn { text-align: left; width: 100%; }
+.settings small { display: block; font-size: 12px; margin-top: 4px; font-weight: 400; }
+
+/* ---------- reduced motion ---------- */
+body.reduce-motion #banner, body.reduce-motion .line.tried, body.reduce-motion #qte.miss { animation: none; }
+body.reduce-motion .bar, body.reduce-motion #caption { transition: none; }
+
 /* ---------- toasts ---------- */
 #toasts { position: absolute; right: 16px; bottom: 16px; z-index: 12; display: grid; gap: 8px; justify-items: end; pointer-events: none; }
 .toast {
@@ -189,6 +223,7 @@ kbd { border: 2px solid currentColor; padding: 0 6px; margin-right: 10px; font-s
 .results .rank { font-size: 20px; margin-top: 18px; letter-spacing: .2em; }
 .results .rank b { display: inline-block; font-size: 64px; border: 4px solid var(--ink); padding: 0 18px; margin-left: 8px; vertical-align: middle; }
 .results .soon { font-size: 13px; margin-top: 18px; }
+.results pre.share { user-select: text; -webkit-user-select: text; text-align: left; display: inline-block; border: 2px dashed var(--ink); padding: 8px 12px; }
 
 .brief { text-align: left; }
 .brief .kicker { font-size: 13px; letter-spacing: .3em; text-align: center; }
@@ -215,6 +250,7 @@ pre.term { font-family: inherit; font-size: clamp(14px, 2.4vw, 22px); line-heigh
 @keyframes toast { 0% { opacity: 0; transform: translateY(10px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 
 @media (max-width: 600px) {
+  #skip { top: 92px; }
   #dlg-text { font-size: 15px; }
   .line { font-size: 12px; }
   #hud { font-size: 12px; }

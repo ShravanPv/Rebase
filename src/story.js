@@ -10,6 +10,8 @@ import { tween, sleep, ease } from './anim.js';
 import * as ui from './ui.js';
 
 const { say, sfx, esc } = ui;
+const me = () => ui.settings.name || 'Stix'; // the player's name (default: Stix)
+const ME = () => me().toUpperCase();
 
 // A failed day. Thrown anywhere in the chapter, caught by the loop runner → REBASE.
 class Fail extends Error {
@@ -106,6 +108,7 @@ export async function play(g) {
     if (day.timing) {
       run.time += real;
       day.min += real * 1.5 * (1 + 0.25 * run.loop); // later loops: the day runs faster
+      if (ui.settings.storyMode) run.storyUsed = true;
       if (day.min >= 1020) timeUp();
     }
     ui.hud(day, run);
@@ -122,6 +125,7 @@ export async function play(g) {
   });
 
   function timeUp() {
+    if (ui.settings.storyMode) { day.min = 1019; return; } // story mode: the day never runs out
     day.min = 1020;
     day.timing = false;
     doomReject?.(new Fail('timeout'));
@@ -207,13 +211,13 @@ export async function play(g) {
     await cam.go(SHOTS.stix, 1.8);
 
     if (L === 0) {
-      await say('STIX', 'New week. New tickets. Same coffee.');
-      await say('ECHO', "Morning, Stix! I'm ECHO, your AI pair-programmer. I read code, write code, and... occasionally make things up.", true);
+      await say(ME(), 'New week. New tickets. Same coffee.');
+      await say('ECHO', `Morning, ${me()}! I'm ECHO, your AI pair-programmer. I read code, write code, and... occasionally make things up.`, true);
       dex('ai');
     } else {
       S.stix.typing = false;
       S.stix.pose('think');
-      await say('STIX', L === 1 ? "Wait... I've lived this morning before." : 'Again. Okay. I know how this goes.');
+      await say(ME(), L === 1 ? "Wait... I've lived this morning before." : 'Again. Okay. I know how this goes.');
       await say('ECHO', `Déjà vu? My counter says loop #${L + 1}. I kept your notes: ${run.clues.size} clue${run.clues.size === 1 ? '' : 's'}.`);
       S.stix.pose('sit');
       S.stix.typing = true;
@@ -236,7 +240,7 @@ export async function play(g) {
     S.stix.pose('sit');
     await S.boss.walkTo(-2.1, 2.4);
     S.boss.pose('point');
-    await say('MANAGER', "Stix! Production is down. Fix it before 17:00. That's when the... 'restructuring' meeting starts.");
+    await say('MANAGER', `${me()}! Production is down. Fix it before 17:00. That's when the... 'restructuring' meeting starts.`);
     S.boss.pose('cross');
     if (!seen('production')) {
       await say('ECHO', "PRODUCTION = the live app real customers are using right now. If it's down, the shop's front door is jammed. Nobody can buy anything.", true);
@@ -260,7 +264,7 @@ export async function play(g) {
     if (pick === 'coffee') await coffee();
     if (pick === 'rage') await rage();
     if (pick === 'direct') {
-      await say('STIX', "The payment timeout is set to zero, so every payment gives up instantly. That's a one-line fix.");
+      await say(ME(), "The payment timeout is set to zero, so every payment gives up instantly. That's a one-line fix.");
       await say('ECHO', "...You didn't even need me. Impressive.");
     } else {
       if (pick === 'logs') await logPuzzle();
@@ -272,19 +276,19 @@ export async function play(g) {
   }
 
   async function coffee() {
-    await say('STIX', "Can't debug without caffeine. Back in five.");
+    await say(ME(), "Can't debug without caffeine. Back in five.");
     tween(0.6, k => { world.stixChair.position.x = -0.95 - k * 1.0; }, ease.outCubic);
     await S.stix.pose('stand', 0.4);
     cam.go(SHOTS.wide, 1.5);
     await S.stix.walkTo(-8, 1.8);
     S.boss.pose('facepalm');
-    await say('MANAGER', 'Is he... getting COFFEE?');
+    await say('MANAGER', `Is ${me()}... getting COFFEE?`);
     throw new Fail('coffee');
   }
 
   // Every engineer's fantasy. REBASE puts it all back afterwards.
   async function rage() {
-    await say('STIX', "You know what? I'm DONE.");
+    await say(ME(), "You know what? I'm DONE.");
     ui.quiet();
     ui.letterbox(true);
     g.timeScale = 0.3; // slow-mo desk flip
@@ -307,12 +311,14 @@ export async function play(g) {
       await say('ECHO', "RAGE MODE. Click anything to smash it (or mash SPACE). Don't worry. Nothing here is permanent... probably.", true);
     }
     ui.quiet();
+    ui.allowSkip(false);
     const damage = await smashSpree(12, broken);
+    ui.allowSkip(true);
 
     ui.letterbox(true);
     S.boss.pose('facepalm');
     await cam.go(SHOTS.boss, 1);
-    await say('MANAGER', `...Stix. That was $${damage.toLocaleString()} of company property.`);
+    await say('MANAGER', `...${me()}. That was $${damage.toLocaleString()} of company property.`);
     await say('MANAGER', 'HR. Now.');
     run.damage = damage;
     throw new Fail('rage');
@@ -353,6 +359,7 @@ export async function play(g) {
       addEventListener('keydown', onKey);
       show();
       const timer = setInterval(() => {
+        if (ui.isPaused()) return;
         left--;
         show();
         if (left > 0) return;
@@ -405,7 +412,7 @@ export async function play(g) {
 
     run.clues.add('timeout');
     ui.toast('CLUE · payment timeout was set to 0 ms');
-    await say('STIX', 'There. A bot changed the payment timeout to ZERO. Every payment gives up instantly.');
+    await say(ME(), 'There. A bot changed the payment timeout to ZERO. Every payment gives up instantly.');
     if (!seen('config')) {
       await say('ECHO', 'That setting is CONFIG: values the app reads, like a thermostat dial. Someone turned it to zero.', true);
       dex('config');
@@ -444,7 +451,7 @@ export async function play(g) {
       mercy: '<b>ECHO:</b> Hint: the problem was a <b>timeout</b>. Which line has nothing to do with timeouts?',
       solvedMsg: '<b>ECHO:</b> ...Yep. That line was me hallucinating. Removed.',
     }));
-    await say('STIX', d.verdict);
+    await say(ME(), d.verdict);
   }
 
   async function blindMerge() {
@@ -452,17 +459,17 @@ export async function play(g) {
     ui.letterbox(true);
     g.timeScale = 0.4;
     await sleep(0.3);
-    document.body.classList.add('inverted');
+    ui.invert(true);
     sfx.hit();
     cam.shake(0.45);
     S.co.forEach(c => c.pose('panicSit', 0.45));
     S.stix.pose('panicSit', 0.45);
     await sleep(0.45);
-    document.body.classList.remove('inverted');
+    ui.invert(false);
     g.timeScale = 1;
     await say('SYSTEM', '[!] 48,213 ORDERS DELETED. Backup status: "coming soon".');
     S.boss.pose('facepalm');
-    await say('MANAGER', '...Stix. What did you just merge?');
+    await say('MANAGER', `...${me()}. What did you just merge?`);
     run.clues.add('halluc');
     throw new Fail('merge');
   }
@@ -475,7 +482,7 @@ export async function play(g) {
     }
     ui.letterbox(true);
     g.timeScale = 0.35; // slow-mo while you aim
-    const zone = Math.max(0.1, 0.28 * 0.8 ** run.loop);
+    const zone = ui.settings.storyMode ? 0.35 : Math.max(0.1, 0.28 * 0.8 ** run.loop);
     while (!(await timed(ui.qte({ zone, label: 'DEPLOY' })))) {
       sfx.bad();
       cam.shake(0.15);
@@ -485,6 +492,7 @@ export async function play(g) {
   }
 
   async function victory(pick) {
+    ui.quiet();
     world.alarm(false);
     ui.flash();
     sfx.good();
@@ -494,7 +502,7 @@ export async function play(g) {
     g.timeScale = 0.6;
     const c = V(-0.95, 1.25, 0);
     const spin = tween(3.2, k => {
-      const a = -0.9 + k * 1.5;
+      const a = -0.1 + k * 1.2; // sweep in front of Stix, away from the manager
       cam.pos.set(c.x + Math.sin(a) * 2.5, c.y + 0.1 - k * 0.25, c.z + Math.cos(a) * 2.5);
       cam.look.copy(c);
     });
@@ -536,7 +544,7 @@ export async function play(g) {
 
   async function rebase() {
     ui.letterbox(true);
-    document.body.classList.add('inverted');
+    ui.invert(true);
     sfx.rewind();
     cam.shake(0.25);
     const from = day.min;
@@ -548,10 +556,12 @@ export async function play(g) {
       `REBASING... loop #${run.loop + 2}`,
       `✓ memory preserved (${run.clues.size} clue${run.clues.size === 1 ? '' : 's'})`,
     ]);
-    document.body.classList.remove('inverted');
+    ui.invert(false);
   }
 
   async function runChapter() {
+    ui.allowSkip(true);
+    ui.allowPause(true);
     for (;;) {
       resetDay();
       doom = new Promise((_, reject) => { doomReject = reject; });
@@ -572,14 +582,18 @@ export async function play(g) {
   }
 
   async function results() {
+    ui.quiet();
     ui.letterbox(false);
+    ui.allowSkip(false);
+    ui.allowPause(false);
+    const story = run.storyUsed || ui.settings.storyMode;
     const score = run.time + run.loop * 30 + run.hints * 20;
-    const rank = score <= 90 ? 'S' : score <= 150 ? 'A' : score <= 240 ? 'B' : score <= 360 ? 'C' : 'D';
+    const rank = story ? '—' : score <= 90 ? 'S' : score <= 150 ? 'A' : score <= 240 ? 'B' : score <= 360 ? 'C' : 'D';
     const best = g.mem.best;
-    const isBest = !best || score < best.score;
+    const isBest = !story && (!best || score < best.score);
     if (isBest) { g.mem.best = { score, rank, time: run.time }; g.save(); }
     const trail = [...run.fails.map(() => '✗'), '✓'].join(' ');
-    const share = `REBASE · Ch.1 The Layoff\n⏱ ${ui.fmtRun(run.time)} · ↺ ${run.loop} · hints ${run.hints} · Rank ${rank}\n${trail}\nShraSquad Productions`;
+    const share = `REBASE · Ch.1 The Layoff · ${me()}\n${story ? 'Story mode' : `⏱ ${ui.fmtRun(run.time)} · ↺ ${run.loop} · hints ${run.hints} · Rank ${rank}`}\n${trail}\nShraSquad Productions`;
 
     const picked = ui.card(`<div class="results">
       <div class="kicker">CHAPTER 1 — THE LAYOFF</div>
@@ -592,14 +606,21 @@ export async function play(g) {
         <tr><td>Run</td><td>${trail}</td></tr>
       </table>
       <div class="rank">RANK <b>${rank}</b></div>
-      <p>${isBest ? 'NEW PERSONAL BEST' : `Best: ${best.rank} · ${ui.fmtRun(best.time)}`}</p>
+      <p>${story ? 'Story mode run (unranked)' : isBest ? 'NEW PERSONAL BEST' : `Best: ${best.rank} · ${ui.fmtRun(best.time)}`}</p>
       <button id="share" class="btn">Copy result to share</button>
       <p class="soon">Chapter 2 — The Interview · coming soon</p>
     </div>`, [['again', 'Play again'], ['title', 'Title screen']]);
     const btn = document.getElementById('share');
     btn.onclick = async () => {
       try { await navigator.clipboard.writeText(share); btn.textContent = 'Copied ✓'; }
-      catch { btn.textContent = 'Copy failed. Select the text below.'; btn.insertAdjacentHTML('afterend', `<pre>${esc(share)}</pre>`); }
+      catch {
+        btn.textContent = 'Copy blocked. Text selected below: press Cmd/Ctrl+C.';
+        const pre = document.createElement('pre');
+        pre.className = 'share';
+        pre.textContent = share;
+        btn.after(pre);
+        getSelection().selectAllChildren(pre);
+      }
     };
     return picked;
   }
@@ -615,7 +636,7 @@ export async function play(g) {
 
   const briefHtml = () => `<div class="brief">
     <div class="kicker">BRIEFING</div>
-    <h2>You are Stix.</h2>
+    <h2>You are ${esc(me())}.</h2>
     <p>A junior software engineer in 2026, the year AI writes half the code. Today production breaks,
     layoffs are on the calendar, and your AI pair-programmer ECHO is helpful. Mostly.</p>
     <div class="rules">
@@ -625,7 +646,7 @@ export async function play(g) {
       <div><b>⚡ Harder each retry</b>The day fights back. But every clue unlocks a shortcut. Smarter beats faster.</div>
       <div><b>☠ Bad days happen</b>Fail spectacularly. Every fail ending is collectible. Yes, you can flip the desk.</div>
     </div>
-    <p class="controls">Click / Space: continue · 1–5: choose · Space: time the deploy · M: sound</p>
+    <p class="controls">Click / Space: continue · 1–5: choose · S: skip scene · Esc: pause · M: sound</p>
   </div>`;
 
   const gitLogHtml = () => `<div class="gitlog">
@@ -649,13 +670,15 @@ export async function play(g) {
     ui.hudShow(false);
     ui.letterbox(false);
     resetDay();
-    const pick = await ui.card(titleHtml(), [['new', 'New run'], ['how', 'How to play'], ['log', '$ git log · Dev Dex &amp; endings']], { glass: true });
+    const pick = await ui.card(titleHtml(), [['new', 'New run'], ['how', 'How to play'], ['settings', 'Settings'], ['log', '$ git log · Dev Dex &amp; endings']], { glass: true });
+    if (pick === 'new' && !ui.settings.name) await ui.askName();
     if (pick === 'how' || (pick === 'new' && !g.mem.briefed)) {
       g.mem.briefed = true;
       g.save();
       const go = await ui.card(briefHtml(), pick === 'new' ? [['go', 'Start the day']] : [['back', 'Back']], { glass: true });
       if (go === 'back') continue;
     }
+    if (pick === 'settings') { await ui.openSettings(); continue; }
     if (pick === 'log') {
       await ui.card(gitLogHtml(), [['back', 'Back']], { glass: true });
       continue;
@@ -663,7 +686,7 @@ export async function play(g) {
     orbit = false;
     let again = true;
     while (again) {
-      Object.assign(run, { loop: 0, clues: new Set(), hints: 0, time: 0, last: null, fails: [] });
+      Object.assign(run, { loop: 0, clues: new Set(), hints: 0, time: 0, last: null, fails: [], storyUsed: false, damage: 0 });
       again = (await runChapter()) === 'again';
     }
   }

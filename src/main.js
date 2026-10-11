@@ -9,6 +9,7 @@ import { updateTweens, makeDirector } from './anim.js';
 import { buildOffice, inkLine } from './world.js';
 import { Stickman } from './stickman.js';
 import { play } from './story.js';
+import * as ui from './ui.js';
 
 // ---------- renderer, scene, camera ----------
 const canvas = document.getElementById('stage');
@@ -29,6 +30,10 @@ function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
+  // Keep the same *horizontal* view on tall screens (phones) by widening the vertical FOV.
+  const minAspect = 16 / 9;
+  camera.fov = w / h >= minAspect ? 38
+    : Math.min(80, (2 * Math.atan(Math.tan((38 * Math.PI) / 360) * (minAspect / (w / h))) * 180) / Math.PI);
   camera.updateProjectionMatrix();
   inkLine.resolution.set(w, h);
 }
@@ -57,16 +62,20 @@ const save = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(mem)); 
 
 // Everything the story needs, in one object.
 const g = { camera, cam: makeDirector(camera), cast, world, mem, save, hooks: [], timeScale: 1 };
+const shake = g.cam.shake;
+g.cam.shake = amount => { if (!ui.settings.reduceMotion) shake(amount); };
 
 // ---------- the game loop: update the world, then draw it, ~60 times a second ----------
 let last = performance.now();
 function frame(now) {
   const real = Math.min((now - last) / 1000, 0.1); // seconds since last frame (capped)
   last = now;
-  const dt = real * g.timeScale; // game time: slower during slow-mo
+  const paused = ui.isPaused();
+  // game time: frozen while paused, slower in slow-mo, 6x while skipping a scene
+  const dt = paused ? 0 : real * g.timeScale * (ui.isFF() ? 6 : 1);
 
   updateTweens(dt);
-  for (const hook of g.hooks) hook(real, dt);
+  if (!paused) for (const hook of g.hooks) hook(real, dt);
   for (const s of everyone) s.update(dt);
   world.update(dt, now / 1000);
   g.cam.update(real);

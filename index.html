@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
   { "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/"
   } }
   </script>
 </head>
@@ -28,6 +28,7 @@
       <span id="hud-loop">LOOP 1</span>
       <span id="hud-run">00:00.00</span>
       <button id="hud-mute" title="Sound on/off (M)">SOUND ON</button>
+      <button id="hud-pause" title="Pause (Esc)" hidden>II PAUSE</button>
     </div>
 
     <div id="caption"></div>
@@ -49,9 +50,11 @@
     </div>
 
     <div id="qte" hidden></div>
+    <button id="skip" hidden title="Fast-forward this scene (S)">SKIP ▸▸</button>
     <div id="toasts"></div>
     <div id="flash"></div>
     <div id="screen" hidden></div>
+    <div id="overlay" hidden></div>
   </div>
 
   <script type="module" src="src/main.js"></script>
