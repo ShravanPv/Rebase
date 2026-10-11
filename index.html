@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  REBASE — Rewrite history. Ship your future.
+  © 2026 ShraSquad Productions. All rights reserved.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REBASE</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage"></canvas>
+
+    <div id="letterbox-top" class="bar"></div>
+    <div id="letterbox-bottom" class="bar"></div>
+
+    <div id="hud" hidden>
+      <span id="hud-day">MON 09:00</span>
+      <span id="hud-loop">LOOP 1</span>
+      <span id="hud-run">00:00.00</span>
+      <button id="hud-mute" title="Sound on/off (M)">SOUND ON</button>
+    </div>
+
+    <div id="caption"></div>
+    <div id="banner" hidden></div>
+
+    <div id="dialogue" hidden>
+      <div id="dlg-name"></div>
+      <div id="dlg-text"></div>
+      <div id="dlg-next">click / space ▼</div>
+    </div>
+
+    <div id="choices" hidden></div>
+
+    <div id="panel" hidden>
+      <div id="panel-head"></div>
+      <div id="panel-task"></div>
+      <div id="panel-body"></div>
+      <div id="panel-foot"></div>
+    </div>
+
+    <div id="qte" hidden></div>
+    <div id="toasts"></div>
+    <div id="flash"></div>
+    <div id="screen" hidden></div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
