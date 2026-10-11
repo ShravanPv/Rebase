@@ -230,6 +230,7 @@ export default {
       escape: 'No idea. ECHO wrote it.',
       penalty: 4 + 2 * L,
       wrongMsg: "<b>MORGAN:</b> Hm. Are you sure? <b>ECHO</b> (quietly): read that line again, slowly.",
+      rightMsg: '<b>MORGAN:</b> Mm-hm. Correct.',
     }));
     if (answered === 'escape') await copyPaste();
     if (!seen('ownership')) {

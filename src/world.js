@@ -321,3 +321,53 @@ export function buildInterviewRoom(scene, ox) {
 
   return { chairs, setClock: m => clock.userData.set(m) };
 }
+
+// ---------- Chapter 3 set: a small apartment at night ----------
+export function buildApartment(scene, ox) {
+  // Back wall with a night window (moon + a few far towers) and a poster.
+  ink(scene, BOX(12, 7, 0.2), ox, 3.5, -3.2);
+  ink(scene, BOX(2.2, 1.6, 0.06), ox + 1.8, 2.2, -3.08);
+  ink(scene, BOX(0.05, 1.6, 0.1), ox + 1.8, 2.2, -3.05);
+  const moon = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 8, 32), solid);
+  moon.position.set(ox + 2.4, 2.65, -3.03);
+  scene.add(moon);
+  for (const [dx, h] of [[1.1, 0.5], [1.4, 0.8], [2.2, 0.6], [2.6, 0.4]]) {
+    const t = new THREE.Mesh(BOX(0.22, h, 0.01), solid);
+    t.position.set(ox + dx, 1.4 + h / 2, -3.03);
+    scene.add(t);
+  }
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 640;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, 512, 640);
+  g.strokeStyle = '#000'; g.lineWidth = 16; g.strokeRect(8, 8, 496, 624);
+  g.fillStyle = '#000'; g.font = '900 120px ui-monospace, Menlo, monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('SHIP', 256, 250); g.fillText('IT.', 256, 400);
+  const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.0), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) }));
+  poster.position.set(ox - 1.2, 2.3, -3.08);
+  scene.add(poster);
+
+  // Desk, laptop, lamp, energy drinks, pizza box, chair.
+  ink(scene, BOX(1.4, 0.06, 0.7), ox, 0.75, -0.2);
+  for (const [dx, dz] of [[-0.65, -0.5], [0.65, -0.5], [-0.65, 0.1], [0.65, 0.1]]) ink(scene, BOX(0.05, 0.72, 0.05), ox + dx, 0.36, dz);
+  ink(scene, BOX(0.3, 0.02, 0.4), ox - 0.15, 0.79, -0.2);
+  const lid = ink(scene, BOX(0.02, 0.3, 0.4), ox, 0.93, -0.2);
+  lid.rotation.z = -0.2;
+  ink(scene, new THREE.CylinderGeometry(0.1, 0.12, 0.03, 16), ox + 0.5, 0.79, -0.4);   // lamp base
+  ink(scene, BOX(0.02, 0.4, 0.02), ox + 0.5, 0.99, -0.4);
+  const shade = ink(scene, new THREE.ConeGeometry(0.14, 0.16, 16, 1, true), ox + 0.42, 1.2, -0.4);
+  shade.rotation.z = 0.5;
+  for (const dx of [0.25, 0.33, 0.29]) ink(scene, new THREE.CylinderGeometry(0.03, 0.03, 0.11, 10), ox + dx, 0.84, dx === 0.29 ? 0.02 : -0.02);
+  ink(scene, BOX(0.4, 0.04, 0.4), ox - 0.45, 0.8, -0.38);                               // pizza box
+  const chair = makeChair(scene, ox - 0.95, -0.2, 1);
+
+  // Bed and a bookshelf.
+  ink(scene, BOX(2.0, 0.4, 1.2), ox - 3.6, 0.2, -2.2);
+  ink(scene, BOX(0.5, 0.12, 0.8), ox - 4.3, 0.46, -2.2);
+  ink(scene, BOX(1.0, 1.8, 0.35), ox + 4.0, 0.9, -2.9);
+  for (let r = 0; r < 4; r++) ink(scene, BOX(0.95, 0.03, 0.33), ox + 4.0, 0.3 + r * 0.42, -2.9);
+
+  const clock = makeClock(scene, ox - 0.1, 2.85, -3.08, 0.24);
+  return { chair, setClock: m => clock.userData.set(m) };
+}

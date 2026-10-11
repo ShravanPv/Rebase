@@ -14,7 +14,7 @@
   <img alt="Three.js" src="https://img.shields.io/badge/Three.js-0.186.1-000000?logo=threedotjs&logoColor=white">
   <img alt="Vanilla JS" src="https://img.shields.io/badge/JavaScript-vanilla-000000?logo=javascript&logoColor=white">
   <img alt="No build step" src="https://img.shields.io/badge/build-none-000000">
-  <img alt="Status" src="https://img.shields.io/badge/status-Chapters%201--2%20playable-000000">
+  <img alt="Status" src="https://img.shields.io/badge/status-Chapters%201--3%20playable-000000">
 </p>
 
 ---
@@ -27,7 +27,7 @@ It's Monday, 09:00. At 09:40 checkout goes down, customers can't pay, and your m
 
 Fail the day and ECHO rewinds time to 09:00: a **REBASE**. You keep everything you learned. The day remembers too.
 
-> The full arc goes from junior engineer to founder across six chapters. Chapters 1 (*The Layoff*) and 2 (*The Interview*) are playable now. Clear Chapter 1 to unlock Chapter 2.
+> The full arc goes from junior engineer to founder across six chapters. Chapters 1 (*The Layoff*), 2 (*The Interview*) and 3 (*The Side Project*) are playable now. Clearing a chapter unlocks the next.
 
 ## Screenshots
 
@@ -93,19 +93,33 @@ You got laid off anyway. Now you're interviewing at **Glasshouse AI**, where can
 
 **Fail endings:** Copy-Paste Candidate · Secret Earpiece · Buzzword Bingo · 11:00.
 
+### Chapter 3: The Side Project
+
+Friday night at home. Ship It Weekend closes submissions at **01:00**. Build something people will pay for.
+
+| Step | Puzzle | What you learn |
+|---|---|---|
+| What to build | Interview five friends and spot the problem that's common, painful, and worth paying for | User research, product-market fit |
+| Spend the credits | Pick features within a shrinking AI-credit budget. Keep the essentials, drop the fluff | AI costs money, MVPs |
+| Build order | Click features in an order that respects what depends on what | Dependencies |
+| 00:15 | Walk, push on, or three energy drinks | Rest is part of the work |
+| Ship it | Time the submit | First paying customer |
+
+**Fail endings:** Cat Meme Unicorn · The Name Game · Burnout · 01:00.
+
 Find every fail ending in `$ git log` on the title screen.
 
 ### Scoring
 
 Your rank comes from **time + 30 s per loop reset + 20 s per hint**:
 
-| Rank | Chapter 1 | Chapter 2 |
-|---|---|---|
-| **S** | ≤ 90 s | ≤ 150 s |
-| **A** | ≤ 150 s | ≤ 240 s |
-| **B** | ≤ 240 s | ≤ 360 s |
-| **C** | ≤ 360 s | ≤ 540 s |
-| **D** | above that | above that |
+| Rank | Chapter 1 | Chapter 2 | Chapter 3 |
+|---|---|---|---|
+| **S** | ≤ 90 s | ≤ 150 s | ≤ 120 s |
+| **A** | ≤ 150 s | ≤ 240 s | ≤ 200 s |
+| **B** | ≤ 240 s | ≤ 360 s | ≤ 300 s |
+| **C** | ≤ 360 s | ≤ 540 s | ≤ 450 s |
+| **D** | above that | above that | above that |
 
 Your best run per chapter is saved in the browser. **Copy result to share** gives you a Wordle-style summary to paste to friends.
 
@@ -137,8 +151,8 @@ Then open **http://localhost:8770** in Chrome, Edge, Firefox or Safari. Three.js
 - **Game loop** (`main.js`): every frame it updates tweens, timers, stickmen and the world, then renders. Slow-mo is a `timeScale` multiplier on game time.
 - **Stickman** (`stickman.js`): a pose is 11 numbers (joint angles, lean, hip height). Forward kinematics turns them into joint positions, and each bone is a black cylinder. Poses blend with easing, with breathing, typing and walk cycles layered on top.
 - **Camera director** (`anim.js`): named shots (`wide`, `stix`, `monitor`, `boss`) that the camera glides between, plus screen shake.
-- **Story engine** (`story.js`): title, chapter select, the time loop, three reusable puzzle types (click-the-line, pick-per-slot, code quiz) and scoring. A failure `throw`s, the runner catches it, plays the fail ending and REBASE, and replays the day with memory intact.
-- **Chapters as scripts** (`ch1.js`, `ch2.js`): each chapter is one file that reads like a screenplay of `await` steps, plus its own Dev Dex terms, fail endings, clock and ranks.
+- **Story engine** (`story.js`): title, chapter select, the time loop, five reusable puzzle types (click-the-line, pick-per-slot, quiz, budget, build order) and scoring. A failure `throw`s, the runner catches it, plays the fail ending and REBASE, and replays the day with memory intact.
+- **Chapters as scripts** (`ch1.js`, `ch2.js`, `ch3.js`): each chapter is one file that reads like a screenplay of `await` steps, plus its own Dev Dex terms, fail endings, clock and ranks.
 - **Rage physics** (`world.js`): smashable props get velocity, spin, gravity and floor bounces. REBASE tweens every piece back to its saved home.
 
 ## Project structure
@@ -150,12 +164,13 @@ rebase/
 ├── src/
 │   ├── main.js       renderer, scene, cast, game loop, saves
 │   ├── anim.js       easing, tweens, camera director
-│   ├── world.js      ink-outlined office + interview room, smashable props, physics
+│   ├── world.js      sets: office, interview room, apartment; smashable props, physics
 │   ├── stickman.js   rig, poses, walk cycle, scarf
 │   ├── ui.js         dialogue, choices, panels, QTE, HUD, sound
 │   ├── story.js      engine: title, chapter select, loop, puzzles, scoring
 │   ├── ch1.js        Chapter 1 — The Layoff
-│   └── ch2.js        Chapter 2 — The Interview
+│   ├── ch2.js        Chapter 2 — The Interview
+│   └── ch3.js        Chapter 3 — The Side Project
 ├── vendor/three/     Three.js 0.186.1 (MIT), bundled for offline play
 ├── docs/             screenshots
 ├── CREDITS.md
@@ -166,7 +181,7 @@ rebase/
 
 - [x] **Chapter 1: The Layoff.** Production outage, log and AI-review puzzles, deploy, rage mode
 - [x] **Chapter 2: The Interview.** Prompt builder, explain-the-code, system design, the earbud temptation
-- [ ] **Chapter 3: The Side Project.** AI credit budget, user interviews
+- [x] **Chapter 3: The Side Project.** User interviews, AI-credit budget, build order, ship by 01:00
 - [ ] **Chapter 4: Demo Day.** Investor profiling, live-demo crash
 - [ ] **Chapter 5: The 3 AM Outage.** Incident triage, the ethical shortcut
 - [ ] **Chapter 6: The Offer.** ECHO's secret, four endings

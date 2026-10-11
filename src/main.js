@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { updateTweens, makeDirector } from './anim.js';
-import { buildOffice, buildInterviewRoom, inkLine } from './world.js';
+import { buildOffice, buildInterviewRoom, buildApartment, inkLine } from './world.js';
 import { Stickman } from './stickman.js';
 import { play } from './story.js';
 import * as ui from './ui.js';
@@ -44,6 +44,8 @@ resize();
 const world = buildOffice(scene);
 const ROOM_X = 40; // Chapter 2's meeting room sits far enough away that fog hides the office
 const room = buildInterviewRoom(scene, ROOM_X);
+const FLAT_X = 80; // Chapter 3's apartment
+const flat = buildApartment(scene, FLAT_X);
 const cast = {
   stix: new Stickman(scene, { x: -0.95, z: 0, pose: 'sit', scarf: true }),
   boss: new Stickman(scene, { x: -7.5, z: 0.55, pose: 'stand', tie: true }),
@@ -71,7 +73,10 @@ const mem = {
 const save = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(mem)); } catch { /* ignore */ } };
 
 // Everything the story needs, in one object.
-const g = { camera, cam: makeDirector(camera), cast, world, room, ROOM_X, mem, save, hooks: [], timeScale: 1 };
+const g = {
+  camera, cam: makeDirector(camera), cast, world, room, flat, mem, save, hooks: [], timeScale: 1,
+  clocks: [world.setClock, room.setClock, flat.setClock], // every wall clock follows the in-game time
+};
 const shake = g.cam.shake;
 g.cam.shake = amount => { if (!ui.settings.reduceMotion) shake(amount); };
 

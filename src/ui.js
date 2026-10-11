@@ -248,7 +248,7 @@ export const fmtRun = s => {
   const m = Math.floor(s / 60), sec = Math.floor(s % 60), cs = Math.floor((s * 100) % 100);
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
 };
-export const fmtClock = min => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(Math.floor(min % 60)).padStart(2, '0')}`;
+export const fmtClock = min => `${String(Math.floor(min / 60) % 24).padStart(2, '0')}:${String(Math.floor(min % 60)).padStart(2, '0')}`; // 25:00 shows as 01:00
 export const hudShow = on => { $('hud').hidden = !on; };
 export function hud(day, run, label = 'MON') {
   $('hud-day').textContent = `${label} ${fmtClock(day.min)}`;

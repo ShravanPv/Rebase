@@ -256,7 +256,18 @@ body.reduce-motion .slot.tried, body.reduce-motion .opt.tried { animation: none;
 pre.code {
   margin: 0; padding: 12px 14px; border-bottom: 3px solid var(--ink);
   font-family: inherit; font-size: 14px; line-height: 1.55; overflow-x: auto; background: #f4f4f4;
+  white-space: pre-wrap; /* keeps code indentation, wraps long chat lines */
 }
+.meter { position: relative; margin: 10px 12px; border: 3px solid var(--ink); height: 34px; display: grid; place-items: center; }
+.meter b { position: relative; z-index: 1; background: var(--paper); padding: 0 8px; font-size: 14px; }
+.meter span { position: absolute; left: 0; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, var(--ink) 0 4px, var(--paper) 4px 8px); }
+.meter.over { outline: 3px solid var(--ink); outline-offset: 3px; }
+.meter.over b::after { content: " · OVER BUDGET"; }
+#panel-body > .opt { margin: 6px 12px; width: calc(100% - 24px); }
+.cost { float: right; margin-left: 12px; }
+.cost::after { content: " cr"; font-weight: 400; }
+ol.sequence { margin: 10px 12px; padding: 10px 10px 10px 36px; border: 2px dashed var(--ink); min-height: 44px; font-weight: 800; }
+ol.sequence:empty::before { content: "Your build order appears here"; font-weight: 400; margin-left: -24px; opacity: .6; }
 .quiz-opts { display: grid; gap: 6px; padding: 10px 12px; }
 .chapters p { font-size: 15px; }
 

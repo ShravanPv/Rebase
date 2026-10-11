@@ -10,8 +10,9 @@ import { tween, sleep, ease } from './anim.js';
 import * as ui from './ui.js';
 import ch1 from './ch1.js';
 import ch2 from './ch2.js';
+import ch3 from './ch3.js';
 
-const CHAPTERS = [ch1, ch2];
+const CHAPTERS = [ch1, ch2, ch3];
 const { say, sfx, esc } = ui;
 const me = () => ui.settings.name || 'Stix'; // the player's name (default: Stix)
 const ME = () => me().toUpperCase();
@@ -51,8 +52,7 @@ export async function play(g) {
       if (day.min >= ch.end) timeUp();
     }
     ui.hud(day, run, ch.day);
-    world.setClock(day.min);
-    g.room.setClock(day.min);
+    for (const setClock of g.clocks) setClock(day.min);
   });
 
   // Slow orbit behind the title screen.
@@ -190,7 +190,7 @@ export async function play(g) {
   }
 
   // ---------- puzzle type 3: answer questions about a piece of code ----------
-  function quizPuzzle({ head, code, questions, escape, penalty = 0, wrongMsg }) {
+  function quizPuzzle({ head, code, questions, escape, penalty = 0, wrongMsg, rightMsg = 'Correct.' }) {
     return new Promise(resolve => {
       let qi = 0;
       const P = ui.openPanel(head, '');
@@ -215,7 +215,7 @@ export async function play(g) {
             if (opt.ok) {
               b.classList.add('sel');
               sfx.good();
-              P.status('<b>MORGAN:</b> Mm-hm. Correct.');
+              P.status(rightMsg);
               qi++;
               setTimeout(() => (qi < questions.length ? ask() : (ui.closePanel(), resolve('done'))), 900);
               return;
@@ -232,10 +232,111 @@ export async function play(g) {
     });
   }
 
+  // ---------- puzzle type 4: choose what to spend a budget on ----------
+  // items: { t, cost, plain, need?: true (must have), fluff?: true (must NOT have) }
+  function budgetPuzzle({ head, task, budget, items, submitLabel, penalty = 0, onWrong, mercy, solvedMsg }) {
+    return new Promise(resolve => {
+      const P = ui.openPanel(head, task);
+      const picked = new Set();
+      let misses = 0, done = false;
+      const meter = document.createElement('div');
+      meter.className = 'meter';
+      const spent = () => [...picked].reduce((sum, it) => sum + it.cost, 0);
+      const draw = () => {
+        const used = spent();
+        meter.innerHTML = `<b>${used} / ${budget} credits</b><span style="width:${Math.min(100, (used / budget) * 100)}%"></span>`;
+        meter.classList.toggle('over', used > budget);
+      };
+      P.body.append(meter);
+      for (const it of shuffle(items)) {
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.innerHTML = `<span>${esc(it.t)} <b class="cost">${it.cost}</b></span>${it.plain ? `<span class="plain">${esc(it.plain)}</span>` : ''}`;
+        b.onclick = () => {
+          if (done) return;
+          picked.has(it) ? picked.delete(it) : picked.add(it);
+          b.classList.toggle('sel', picked.has(it));
+          sfx.click();
+          draw();
+        };
+        P.body.append(b);
+      }
+      draw();
+      const submit = document.createElement('button');
+      submit.className = 'btn submit';
+      submit.textContent = submitLabel;
+      submit.onclick = () => {
+        if (done) return;
+        const missing = items.find(it => it.need && !picked.has(it));
+        const fluff = [...picked].find(it => it.fluff);
+        const problem = spent() > budget ? ['over', null] : missing ? ['missing', missing] : fluff ? ['fluff', fluff] : null;
+        if (!problem) {
+          done = true;
+          sfx.good();
+          P.status(solvedMsg);
+          setTimeout(() => { ui.closePanel(); resolve([...picked]); }, 1300);
+          return;
+        }
+        misses++;
+        wrongFx(meter);
+        if (penalty) spend(penalty);
+        P.status(misses >= 3 && mercy ? mercy : onWrong(...problem));
+      };
+      P.foot.prepend(submit);
+      hintButton(P);
+      P.status('&nbsp;');
+    });
+  }
+
+  // ---------- puzzle type 5: put steps in an order that respects dependencies ----------
+  // items: { id, t, deps: [ids that must come first], plain }
+  function orderPuzzle({ head, task, items, penalty = 0, onWrong, mercy, solvedMsg }) {
+    return new Promise(resolve => {
+      const P = ui.openPanel(head, task);
+      const placed = [];
+      let misses = 0;
+      const seq = document.createElement('ol');
+      seq.className = 'sequence';
+      const pool = document.createElement('div');
+      pool.className = 'quiz-opts';
+      P.body.append(seq, pool);
+      for (const it of shuffle(items)) {
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.innerHTML = `<span>${esc(it.t)}</span>${it.plain ? `<span class="plain">${esc(it.plain)}</span>` : ''}`;
+        b.onclick = () => {
+          const blocker = it.deps.find(d => !placed.includes(d));
+          if (blocker) {
+            misses++;
+            wrongFx(b);
+            if (penalty) spend(penalty);
+            P.status(misses >= 3 && mercy ? mercy : onWrong(it, items.find(x => x.id === blocker)));
+            return;
+          }
+          placed.push(it.id);
+          sfx.click();
+          b.remove();
+          const li = document.createElement('li');
+          li.textContent = it.t;
+          seq.append(li);
+          P.status('&nbsp;');
+          if (placed.length === items.length) {
+            sfx.good();
+            P.status(solvedMsg);
+            setTimeout(() => { ui.closePanel(); resolve(); }, 1300);
+          }
+        };
+        pool.append(b);
+      }
+      hintButton(P);
+      P.status('&nbsp;');
+    });
+  }
+
   // Everything a chapter script needs.
   const c = {
     g, S, cam, world, ui, say, sfx, esc, me, ME, run, day,
-    timed, spend, dex, seen, clickPuzzle, slotPuzzle, quizPuzzle, Fail, tween, sleep, ease,
+    timed, spend, dex, seen, clickPuzzle, slotPuzzle, quizPuzzle, budgetPuzzle, orderPuzzle, Fail, tween, sleep, ease,
   };
 
   // ---------- fail → REBASE → retry ----------
@@ -385,7 +486,7 @@ export async function play(g) {
   const chapterHtml = () => `<div class="chapters">
     <h2>Choose a chapter</h2>
     ${CHAPTERS.map(x => `<p>Ch.${x.num} · ${esc(x.title)} ${g.mem.cleared.includes(x.id) ? '✓' : ''}</p>`).join('')}
-    <p class="soon">Chapters 3–6 coming soon</p>
+    <p class="soon">Chapters ${CHAPTERS.length + 1}–6 coming soon</p>
   </div>`;
   const unlocked = () => CHAPTERS.filter((x, i) => i === 0 || g.mem.cleared.includes(CHAPTERS[i - 1].id));
 
